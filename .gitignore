@@ -36,6 +36,12 @@ yarn-error.log*
 # vercel
 .vercel
 
+# cursor mcp
+.cursor/mcp.json
+
+# local scratch
+.tmp/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
