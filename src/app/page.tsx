@@ -2,100 +2,25 @@ import Link from "next/link";
 import { CardArrow, CardIcon, GlassCard, SectionHeading, TagPill } from "@/components/GlassCard";
 import { Icon } from "@/components/Icon";
 import { SiteFooter, SiteNav } from "@/components/SiteShell";
+import { sanityFetch } from "@/sanity/fetch";
+import {
+  FEATURED_CASE_STUDIES_QUERY,
+  PROCESS_STEPS_QUERY,
+  SECTORS_QUERY,
+  STATS_QUERY,
+} from "@/sanity/queries";
+import type { FeaturedCaseStudy, ProcessStep, Sector, Stat } from "@/sanity/types";
 
-const stats = [
-  { value: "8+", label: "Years Engineering" },
-  { value: "40+", label: "Products Shipped" },
-  { value: "94%", label: "Avg. Latency Gain" },
-  { value: "12", label: "Enterprise Clients" },
-];
+const scanDelays = ["", "1s", "2s", "0.5s"];
 
-const sectors = [
-  {
-    title: "AI SaaS Projects",
-    icon: "memory",
-    description:
-      "Scalable cloud architectures integrating advanced LLMs and predictive models for enterprise automation.",
-    tags: ["Python", "TensorFlow"],
-    colSpan: "md:col-span-8",
-    scanDelay: undefined,
-    hasTags: true,
-    href: "/case-study",
-  },
-  {
-    title: "Web-App Dev",
-    icon: "language",
-    description: "High-performance React/Next.js platforms with deep analytical dashboards.",
-    colSpan: "md:col-span-4",
-    scanDelay: "1s",
-    hasTags: false,
-    href: "/case-study",
-  },
-  {
-    title: "Website Development",
-    icon: "web",
-    description: "Immersive, conversion-optimized marketing assets utilizing WebGL and minimal physics.",
-    colSpan: "md:col-span-5",
-    scanDelay: "2s",
-    hasTags: false,
-    href: "/case-study",
-  },
-  {
-    title: "App Development",
-    icon: "smartphone",
-    description:
-      "Native iOS and Android environments engineered for zero-latency interactions and offline data sync.",
-    tags: ["Swift", "Kotlin"],
-    colSpan: "md:col-span-7",
-    scanDelay: "0.5s",
-    hasTags: true,
-    href: "/case-study",
-  },
-];
+export default async function Home() {
+  const [stats, sectors, featured, process] = await Promise.all([
+    sanityFetch<Stat[]>({ query: STATS_QUERY }),
+    sanityFetch<Sector[]>({ query: SECTORS_QUERY }),
+    sanityFetch<FeaturedCaseStudy[]>({ query: FEATURED_CASE_STUDIES_QUERY }),
+    sanityFetch<ProcessStep[]>({ query: PROCESS_STEPS_QUERY }),
+  ]);
 
-const featured = [
-  {
-    title: "Quantum Node Architecture",
-    category: "FinTech / AI",
-    metric: "-94% latency",
-    description: "Neural topology redesign for high-frequency trading infrastructure.",
-    href: "/case-study",
-  },
-  {
-    title: "Enterprise LLM Gateway",
-    category: "SaaS",
-    metric: "3.2M req/day",
-    description: "Multi-tenant inference layer with policy routing and observability.",
-    href: "/case-study",
-  },
-  {
-    title: "Clinical Vision Pipeline",
-    category: "Healthcare",
-    metric: "99.1% accuracy",
-    description: "Real-time diagnostic assist system deployed across 18 clinics.",
-    href: "/case-study",
-  },
-];
-
-const process = [
-  {
-    icon: "radar",
-    title: "Discovery",
-    text: "Map constraints, data topology, and success metrics before writing code.",
-  },
-  {
-    icon: "architecture",
-    title: "Architecture",
-    text: "Design deterministic systems from probabilistic models with clear failure modes.",
-  },
-  {
-    icon: "rocket_launch",
-    title: "Deployment",
-    text: "Ship with MLOps pipelines, monitoring, and rollback-safe release paths.",
-  },
-];
-
-export default function Home() {
   return (
     <>
       <SiteNav />
@@ -139,91 +64,104 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="border-y border-white/10 px-6 py-16 md:px-20">
-          <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <p className="headline-font mb-2 text-4xl font-bold text-cyan md:text-5xl">{stat.value}</p>
-                <p className="label-mono text-xs text-muted">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        <section className="px-6 py-32 md:px-20">
-          <SectionHeading
-            title="Development Sectors"
-            subtitle="Specialized engineering across AI systems, product platforms, and high-performance interfaces."
-          />
-          <div className="grid auto-rows-[320px] grid-cols-1 gap-2 md:grid-cols-12">
-            {sectors.map((sector) => (
-              <GlassCard
-                key={sector.title}
-                className={`flex flex-col justify-between p-8 ${sector.colSpan}`}
-                scanDelay={sector.scanDelay}
-              >
-                <div className="absolute inset-0 bg-gradient-to-br from-cyan/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-                <div className="relative z-10">
-                  <CardIcon name={sector.icon} />
-                  <h3 className="headline-font mb-2 text-[32px] leading-[40px] font-medium">{sector.title}</h3>
-                  <p className="max-w-md text-sm leading-relaxed text-muted">{sector.description}</p>
+        {stats.length > 0 && (
+          <section className="border-y border-white/10 px-6 py-16 md:px-20">
+            <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
+              {stats.map((stat) => (
+                <div key={stat._id}>
+                  <p className="headline-font mb-2 text-4xl font-bold text-cyan md:text-5xl">{stat.value}</p>
+                  <p className="label-mono text-xs text-muted">{stat.label}</p>
                 </div>
-                <div
-                  className={`relative z-10 flex items-end ${sector.hasTags ? "justify-between" : "justify-end"}`}
+              ))}
+            </div>
+          </section>
+        )}
+
+        {sectors.length > 0 && (
+          <section className="px-6 py-32 md:px-20">
+            <SectionHeading
+              title="Development Sectors"
+              subtitle="Specialized engineering across AI systems, product platforms, and high-performance interfaces."
+            />
+            <div className="grid auto-rows-[320px] grid-cols-1 gap-2 md:grid-cols-12">
+              {sectors.map((sector, i) => (
+                <GlassCard
+                  key={sector._id}
+                  className={`flex flex-col justify-between p-8 ${sector.colSpan ?? "md:col-span-4"}`}
+                  scanDelay={scanDelays[i]}
                 >
-                  {sector.tags && (
-                    <div className="flex gap-2">
-                      {sector.tags.map((tag) => (
-                        <TagPill key={tag} label={tag} />
-                      ))}
-                    </div>
-                  )}
-                  <Link href={sector.href} aria-label={`View ${sector.title}`}>
-                    <CardArrow />
+                  <div className="absolute inset-0 bg-gradient-to-br from-cyan/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+                  <div className="relative z-10">
+                    <CardIcon name={sector.icon} />
+                    <h3 className="headline-font mb-2 text-[32px] leading-[40px] font-medium">{sector.title}</h3>
+                    <p className="max-w-md text-sm leading-relaxed text-muted">{sector.description}</p>
+                  </div>
+                  <div
+                    className={`relative z-10 flex items-end ${sector.tags?.length ? "justify-between" : "justify-end"}`}
+                  >
+                    {sector.tags && sector.tags.length > 0 && (
+                      <div className="flex gap-2">
+                        {sector.tags.map((tag) => (
+                          <TagPill key={tag} label={tag} />
+                        ))}
+                      </div>
+                    )}
+                    <Link href="/case-study" aria-label={`View ${sector.title}`}>
+                      <CardArrow />
+                    </Link>
+                  </div>
+                </GlassCard>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {featured.length > 0 && (
+          <section className="px-6 pb-32 md:px-20">
+            <SectionHeading title="Selected Work" subtitle="Recent case studies with measurable outcomes." />
+            <div className="grid gap-6 md:grid-cols-3">
+              {featured.map((item, i) => (
+                <GlassCard key={item._id} className="flex flex-col gap-6 p-8" scanDelay={`${i * 0.5}s`}>
+                  <div className="flex items-center justify-between">
+                    <span className="label-mono text-xs text-cyan">{item.category}</span>
+                    {item.metric && (
+                      <span className="label-mono text-xs text-[#8e9192]">{item.metric}</span>
+                    )}
+                  </div>
+                  <div>
+                    <h3 className="headline-font mb-3 text-2xl font-medium">{item.title}</h3>
+                    <p className="text-sm leading-relaxed text-muted">{item.description}</p>
+                  </div>
+                  <Link
+                    href={`/case-study/${item.slug}`}
+                    className="inline-flex items-center gap-2 text-sm text-cyan transition-colors hover:text-foreground"
+                  >
+                    Read case study
+                    <Icon name="arrow_forward" size={16} />
                   </Link>
-                </div>
-              </GlassCard>
-            ))}
-          </div>
-        </section>
+                </GlassCard>
+              ))}
+            </div>
+          </section>
+        )}
 
-        <section className="px-6 pb-32 md:px-20">
-          <SectionHeading title="Selected Work" subtitle="Recent case studies with measurable outcomes." />
-          <div className="grid gap-6 md:grid-cols-3">
-            {featured.map((item, i) => (
-              <GlassCard key={item.title} className="flex flex-col gap-6 p-8" scanDelay={`${i * 0.5}s`}>
-                <div className="flex items-center justify-between">
-                  <span className="label-mono text-xs text-cyan">{item.category}</span>
-                  <span className="label-mono text-xs text-[#8e9192]">{item.metric}</span>
-                </div>
-                <div>
-                  <h3 className="headline-font mb-3 text-2xl font-medium">{item.title}</h3>
-                  <p className="text-sm leading-relaxed text-muted">{item.description}</p>
-                </div>
-                <Link
-                  href={item.href}
-                  className="inline-flex items-center gap-2 text-sm text-cyan transition-colors hover:text-foreground"
-                >
-                  Read case study
-                  <Icon name="arrow_forward" size={16} />
-                </Link>
-              </GlassCard>
-            ))}
-          </div>
-        </section>
-
-        <section className="px-6 pb-32 md:px-20">
-          <SectionHeading title="Engagement Model" subtitle="A repeatable process for shipping production-grade AI systems." />
-          <div className="grid gap-6 md:grid-cols-3">
-            {process.map((step, i) => (
-              <GlassCard key={step.title} className="p-8" scanDelay={`${i * 0.4}s`}>
-                <Icon name={step.icon} size={28} className="mb-6 text-cyan" />
-                <h3 className="headline-font mb-3 text-2xl font-medium">{step.title}</h3>
-                <p className="text-sm leading-relaxed text-muted">{step.text}</p>
-              </GlassCard>
-            ))}
-          </div>
-        </section>
+        {process.length > 0 && (
+          <section className="px-6 pb-32 md:px-20">
+            <SectionHeading
+              title="Engagement Model"
+              subtitle="A repeatable process for shipping production-grade AI systems."
+            />
+            <div className="grid gap-6 md:grid-cols-3">
+              {process.map((step, i) => (
+                <GlassCard key={step._id} className="p-8" scanDelay={`${i * 0.4}s`}>
+                  <Icon name={step.icon} size={28} className="mb-6 text-cyan" />
+                  <h3 className="headline-font mb-3 text-2xl font-medium">{step.title}</h3>
+                  <p className="text-sm leading-relaxed text-muted">{step.text}</p>
+                </GlassCard>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mx-6 md:mx-20">
           <GlassCard className="relative overflow-hidden rounded-3xl p-12 md:p-16" scanDelay="0.2s">

@@ -3,79 +3,25 @@ import { GlassCard, SectionHeading } from "@/components/GlassCard";
 import { Icon } from "@/components/Icon";
 import { SkillBars } from "@/components/SkillBars";
 import { SiteFooter, SiteNav } from "@/components/SiteShell";
+import { sanityFetch } from "@/sanity/fetch";
+import {
+  CERTIFICATIONS_QUERY,
+  PRINCIPLES_QUERY,
+  SKILLS_QUERY,
+  TIMELINE_QUERY,
+  TOOLS_QUERY,
+} from "@/sanity/queries";
+import type { Certification, Principle, Skill, TimelineEntry, Tool } from "@/sanity/types";
 
-const timeline = [
-  {
-    period: "2021 — PRESENT",
-    role: "Principal AI Engineer",
-    text: "Architecting foundational models for enterprise SaaS solutions. Leading a team of researchers to optimize transformer models for latency-critical applications in financial tech. Reduced inference time by 40% across edge deployments.",
-    active: true,
-  },
-  {
-    period: "2018 — 2021",
-    role: "Senior Machine Learning Architect",
-    text: "Designed end-to-end ML pipelines for natural language processing tools. Implemented rigorous CI/CD practices for model training, ensuring deterministic and reproducible outcomes across cloud environments.",
-  },
-  {
-    period: "2015 — 2018",
-    role: "Data Scientist",
-    text: "Developed predictive analytics models utilizing traditional ML algorithms. Built the foundational data lakes that later supported deep learning initiatives.",
-  },
-];
+export default async function AboutPage() {
+  const [principles, timeline, skills, tools, certifications] = await Promise.all([
+    sanityFetch<Principle[]>({ query: PRINCIPLES_QUERY }),
+    sanityFetch<TimelineEntry[]>({ query: TIMELINE_QUERY }),
+    sanityFetch<Skill[]>({ query: SKILLS_QUERY }),
+    sanityFetch<Tool[]>({ query: TOOLS_QUERY }),
+    sanityFetch<Certification[]>({ query: CERTIFICATIONS_QUERY }),
+  ]);
 
-const certifications = [
-  {
-    icon: "cloud",
-    title: "AWS Certified Machine Learning",
-    description:
-      "Specialty Certification validating expertise in building, tuning, and deploying ML models on AWS.",
-  },
-  {
-    icon: "memory",
-    title: "Google Cloud Professional ML Engineer",
-    description:
-      "Designing, building, and productionizing ML models to solve business challenges using Google Cloud technologies.",
-  },
-  {
-    icon: "verified",
-    title: "DeepLearning.AI Specialization",
-    description:
-      "Advanced sequence models, attention mechanisms, and foundational understanding of modern AI architectures.",
-  },
-];
-
-const principles = [
-  {
-    icon: "psychology",
-    title: "Quiet Intelligence",
-    text: "Complex systems should feel effortless. I optimize for clarity, not spectacle.",
-  },
-  {
-    icon: "precision_manufacturing",
-    title: "Deterministic Delivery",
-    text: "Probabilistic models, deterministic outcomes through rigorous validation and observability.",
-  },
-  {
-    icon: "shield",
-    title: "Production First",
-    text: "Every prototype is designed with deployment, monitoring, and maintainability in mind.",
-  },
-];
-
-const tools = [
-  "Python",
-  "PyTorch",
-  "TensorFlow",
-  "Next.js",
-  "Kubernetes",
-  "AWS",
-  "GCP",
-  "PostgreSQL",
-  "Ray",
-  "Docker",
-];
-
-export default function AboutPage() {
   return (
     <>
       <SiteNav activePath="/about" />
@@ -128,77 +74,85 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section>
-          <SectionHeading title="Core Principles" />
-          <div className="grid gap-6 md:grid-cols-3">
-            {principles.map((item, i) => (
-              <GlassCard key={item.title} className="p-8" scanDelay={`${i * 0.5}s`}>
-                <Icon name={item.icon} size={28} className="mb-6 text-cyan" />
-                <h3 className="headline-font mb-3 text-2xl font-medium">{item.title}</h3>
-                <p className="text-sm leading-relaxed text-muted">{item.text}</p>
-              </GlassCard>
-            ))}
-          </div>
-        </section>
+        {principles.length > 0 && (
+          <section>
+            <SectionHeading title="Core Principles" />
+            <div className="grid gap-6 md:grid-cols-3">
+              {principles.map((item, i) => (
+                <GlassCard key={item._id} className="p-8" scanDelay={`${i * 0.5}s`}>
+                  <Icon name={item.icon} size={28} className="mb-6 text-cyan" />
+                  <h3 className="headline-font mb-3 text-2xl font-medium">{item.title}</h3>
+                  <p className="text-sm leading-relaxed text-muted">{item.text}</p>
+                </GlassCard>
+              ))}
+            </div>
+          </section>
+        )}
 
-        <section className="flex flex-col gap-12">
-          <h2 className="headline-font inline-block self-start border-b border-white/12 pb-4 text-[32px] font-medium">
-            Trajectory
-          </h2>
-          <div className="ml-4 flex flex-col gap-16 border-l border-white/12">
-            {timeline.map((item) => (
-              <article key={item.period} className="relative pl-12">
+        {timeline.length > 0 && (
+          <section className="flex flex-col gap-12">
+            <h2 className="headline-font inline-block self-start border-b border-white/12 pb-4 text-[32px] font-medium">
+              Trajectory
+            </h2>
+            <div className="ml-4 flex flex-col gap-16 border-l border-white/12">
+              {timeline.map((item) => (
+                <article key={item._id} className="relative pl-12">
+                  <span
+                    className={`absolute -left-[6.5px] top-2 h-3 w-3 rounded-full ${
+                      item.active
+                        ? "bg-cyan shadow-[0_0_10px_rgba(0,238,252,0.8)]"
+                        : "bg-outline"
+                    }`}
+                  />
+                  <p className={`label-mono mb-2 text-xs ${item.active ? "text-cyan" : "text-[#8e9192]"}`}>
+                    {item.period}
+                  </p>
+                  <h3 className="text-lg font-bold">{item.role}</h3>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">{item.text}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {skills.length > 0 && <SkillBars skills={skills} />}
+
+        {tools.length > 0 && (
+          <section>
+            <SectionHeading title="Technical Stack" subtitle="Tools and platforms used across production deployments." />
+            <div className="flex flex-wrap gap-3">
+              {tools.map((tool) => (
                 <span
-                  className={`absolute -left-[6.5px] top-2 h-3 w-3 rounded-full ${
-                    item.active
-                      ? "bg-cyan shadow-[0_0_10px_rgba(0,238,252,0.8)]"
-                      : "bg-outline"
-                  }`}
-                />
-                <p className={`label-mono mb-2 text-xs ${item.active ? "text-cyan" : "text-[#8e9192]"}`}>
-                  {item.period}
-                </p>
-                <h3 className="text-lg font-bold">{item.role}</h3>
-                <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">{item.text}</p>
-              </article>
-            ))}
-          </div>
-        </section>
+                  key={tool._id}
+                  className="label-mono rounded-full border border-white/10 bg-surface-low px-4 py-2 text-xs text-muted"
+                >
+                  {tool.name}
+                </span>
+              ))}
+            </div>
+          </section>
+        )}
 
-        <SkillBars />
-
-        <section>
-          <SectionHeading title="Technical Stack" subtitle="Tools and platforms used across production deployments." />
-          <div className="flex flex-wrap gap-3">
-            {tools.map((tool) => (
-              <span
-                key={tool}
-                className="label-mono rounded-full border border-white/10 bg-surface-low px-4 py-2 text-xs text-muted"
-              >
-                {tool}
-              </span>
-            ))}
-          </div>
-        </section>
-
-        <section className="flex flex-col gap-12">
-          <h2 className="headline-font inline-block self-start border-b border-white/12 pb-4 text-[32px] font-medium">
-            Certifications
-          </h2>
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-            {certifications.map((cert, i) => (
-              <GlassCard
-                key={cert.title}
-                className="glow-hover flex flex-col gap-4 p-8 transition-all duration-300"
-                scanDelay={`${i * 0.6}s`}
-              >
-                <Icon name={cert.icon} size={36} filled className="text-cyan" />
-                <h3 className="text-lg font-bold">{cert.title}</h3>
-                <p className="text-sm leading-relaxed text-muted">{cert.description}</p>
-              </GlassCard>
-            ))}
-          </div>
-        </section>
+        {certifications.length > 0 && (
+          <section className="flex flex-col gap-12">
+            <h2 className="headline-font inline-block self-start border-b border-white/12 pb-4 text-[32px] font-medium">
+              Certifications
+            </h2>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+              {certifications.map((cert, i) => (
+                <GlassCard
+                  key={cert._id}
+                  className="glow-hover flex flex-col gap-4 p-8 transition-all duration-300"
+                  scanDelay={`${i * 0.6}s`}
+                >
+                  <Icon name={cert.icon} size={36} filled className="text-cyan" />
+                  <h3 className="text-lg font-bold">{cert.title}</h3>
+                  <p className="text-sm leading-relaxed text-muted">{cert.description}</p>
+                </GlassCard>
+              ))}
+            </div>
+          </section>
+        )}
       </main>
       <SiteFooter />
     </>

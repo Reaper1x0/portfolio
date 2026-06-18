@@ -1,15 +1,13 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import type { Skill } from "@/sanity/types";
 
-const skills = [
-  { name: "Transformer Architecture", score: 95 },
-  { name: "MLOps & CI/CD", score: 88 },
-  { name: "Distributed Training", score: 92 },
-  { name: "Computer Vision", score: 85 },
-];
+type SkillBarsProps = {
+  skills: Skill[];
+};
 
-export function SkillBars() {
+export function SkillBars({ skills }: SkillBarsProps) {
   const refs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {
@@ -47,7 +45,7 @@ export function SkillBars() {
       </div>
       {skills.map((skill, i) => (
         <div
-          key={skill.name}
+          key={skill._id}
           ref={(el) => {
             refs.current[i] = el;
           }}
